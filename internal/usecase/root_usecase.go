@@ -28,8 +28,9 @@ const (
 )
 
 type RootUsecase struct {
-	gitService    *service.GitService
-	geminiService *service.GeminiService
+	gitService        *service.GitService
+	geminiService     *service.GeminiService
+	openRouterService *service.OpenRouterService
 }
 
 var (
@@ -41,8 +42,13 @@ func NewRootUsecase() *RootUsecase {
 	rootUsecaseOnce.Do(func() {
 		gitService := service.NewGitService()
 		geminiService := service.NewGeminiService()
+		openRouterService := service.NewOpenRouterService()
 
-		rootUsecaseInstance = &RootUsecase{gitService, geminiService}
+		rootUsecaseInstance = &RootUsecase{
+			gitService,
+			geminiService,
+			openRouterService,
+		}
 	})
 
 	return rootUsecaseInstance
@@ -83,16 +89,6 @@ func (r *RootUsecase) RootCommand(
 	noConfirm *bool,
 	quiet *bool,
 ) error {
-	client, errClient := genai.NewClient(
-		ctx,
-		option.WithAPIKey(apiKey),
-	)
-	if errClient != nil {
-		fmt.Printf("Error getting gemini client: %v", errClient)
-		os.Exit(1)
-	}
-	defer client.Close()
-
 	if err := r.gitService.VerifyGitInstallation(); err != nil {
 		return err
 	}
@@ -100,11 +96,6 @@ func (r *RootUsecase) RootCommand(
 	if err := r.gitService.VerifyGitRepository(); err != nil {
 		return err
 	}
-
-	// lastCommit, err := r.gitService.GetLastCommitMessages(5)
-	// if err != nil {
-	// 	return err
-	// }
 
 	if *stageAll {
 		if err := r.gitService.StageAll(); err != nil {
@@ -155,13 +146,13 @@ generate:
 			if err := spinner.New().
 				Title(fmt.Sprintf("AI is analyzing your changes. (Model: %s)", *model)).
 				Action(func() {
-					r.analyzeToChannel(client, ctx, diff, userContext, relatedFiles, model, messageChan)
+					r.analyzeToChannel(ctx, apiKey, diff, userContext, relatedFiles, model, messageChan)
 				}).
 				Run(); err != nil {
 				return err
 			}
 		} else {
-			r.analyzeToChannel(client, ctx, diff, userContext, relatedFiles, model, messageChan)
+			r.analyzeToChannel(ctx, apiKey, diff, userContext, relatedFiles, model, messageChan)
 		}
 
 		message := <-messageChan
@@ -276,24 +267,46 @@ func (r *RootUsecase) editContext(userContext *string) error {
 }
 
 func (r *RootUsecase) analyzeToChannel(
-	client *genai.Client,
 	ctx context.Context,
+	apiKey string,
 	diff string,
 	userContext *string,
 	relatedFiles map[string]string,
 	model *string,
-	// lastCommit []string,
 	messageChan chan string,
 ) {
-	message, err := r.geminiService.AnalyzeChanges(
-		client,
-		ctx,
-		diff,
-		userContext,
-		&relatedFiles,
-		model,
-		// lastCommit,
-	)
+	var message string
+	var err error
+
+	// Check if the model is a Gemini model
+	if strings.HasPrefix(*model, "gemini") {
+		client, errClient := genai.NewClient(ctx, option.WithAPIKey(apiKey))
+		if errClient != nil {
+			messageChan <- ""
+			return
+		}
+		defer client.Close()
+
+		message, err = r.geminiService.AnalyzeChanges(
+			client,
+			ctx,
+			diff,
+			userContext,
+			&relatedFiles,
+			model,
+		)
+	} else {
+		// Use OpenRouter for other models
+		message, err = r.openRouterService.AnalyzeChanges(
+			ctx,
+			apiKey,
+			diff,
+			userContext,
+			&relatedFiles,
+			model,
+		)
+	}
+
 	if err != nil {
 		messageChan <- ""
 	} else {

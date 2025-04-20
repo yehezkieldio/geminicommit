@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/fatih/color"
@@ -50,15 +51,30 @@ func (r *RootHandler) RootCommand(
 			*quiet = false
 		}
 
-		apiKey := viper.GetString("api.key")
-		if apiKey == "" {
-			fmt.Println(
-				"Error: API key is still empty, run this command to set your API key",
-			)
-			fmt.Print("\n")
-			color.New(color.Bold).Print("geminicommit config key set ")
-			color.New(color.Italic, color.Bold).Print("api_key\n\n")
-			os.Exit(1)
+		// Get appropriate API key based on model
+		var apiKey string
+		if strings.HasPrefix(*model, "gemini") {
+			apiKey = viper.GetString("api.key")
+			if apiKey == "" {
+				fmt.Println(
+					"Error: Gemini API key is still empty, run this command to set your API key",
+				)
+				fmt.Print("\n")
+				color.New(color.Bold).Print("geminicommit config key set ")
+				color.New(color.Italic, color.Bold).Print("api_key\n\n")
+				os.Exit(1)
+			}
+		} else {
+			apiKey = viper.GetString("api.openrouter_key")
+			if apiKey == "" {
+				fmt.Println(
+					"Error: OpenRouter API key is still empty, run this command to set your API key",
+				)
+				fmt.Print("\n")
+				color.New(color.Bold).Print("geminicommit config key set-openrouter ")
+				color.New(color.Italic, color.Bold).Print("api_key\n\n")
+				os.Exit(1)
+			}
 		}
 
 		err := r.useCase.RootCommand(ctx, apiKey, stageAll, userContext, model, noConfirm, quiet)

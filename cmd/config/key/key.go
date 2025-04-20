@@ -18,7 +18,7 @@ var KeyCmd = &cobra.Command{
 }
 
 func init() {
-	KeyCmd.AddCommand(setCmd, showCmd)
+	KeyCmd.AddCommand(setCmd, setOpenRouterCmd, showCmd, showOpenRouterCmd)
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

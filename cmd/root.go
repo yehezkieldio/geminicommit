@@ -72,7 +72,22 @@ func init() {
 	RootCmd.Flags().
 		StringVarP(&userContext, "context", "c", "", "additional context to be added to the commit message")
 	RootCmd.Flags().
-		StringVarP(&model, "model", "m", "gemini-1.5-pro", "google gemini model to use")
+		StringVarP(&model, "model", "m", "gemini-1.5-pro", "model to use (gemini or openrouter models)")
+
+	RootCmd.RegisterFlagCompletionFunc("model", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{
+			"gemini-1.5-pro",
+			"openai/gpt-4",
+			"openai/gpt-3.5-turbo",
+			"anthropic/claude-2",
+			"anthropic/claude-instant-1",
+			"google/palm-2-chat-bison",
+			"google/gemini-pro",
+			"meta-llama/llama-2-70b-chat",
+			"meta-llama/llama-2-13b-chat",
+			"mistral/mistral-7b-instruct",
+		}, cobra.ShellCompDirectiveNoFileComp
+	})
 }
 
 // initConfig reads in config file and ENV variables if set.
