@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 	"sync"
 
@@ -96,14 +97,24 @@ func (g *OpenRouterService) AnalyzeChanges(
 	relatedFiles *map[string]string,
 	modelName *string,
 ) (string, error) {
-	// format relatedFiles to be dir : files
 	relatedFilesArray := make([]string, 0, len(*relatedFiles))
 	for dir, ls := range *relatedFiles {
 		relatedFilesArray = append(relatedFilesArray, fmt.Sprintf("%s/%s", dir, ls))
 	}
 
+	httpClient := &http.Client{
+		Transport: &customTransport{
+			headers: map[string]string{
+				"HTTP-Referer": "https://github.com/yehezkieldio/geminicommit",
+				"X-Title":      "forked-geminicommit",
+			},
+			transport: http.DefaultTransport,
+		},
+	}
+
 	config := openai.DefaultConfig(apiKey)
 	config.BaseURL = "https://openrouter.ai/api/v1"
+	config.HTTPClient = httpClient
 
 	client := openai.NewClientWithConfig(config)
 
@@ -139,4 +150,17 @@ func (g *OpenRouterService) AnalyzeChanges(
 	}
 
 	return resp.Choices[0].Message.Content, nil
+}
+
+type customTransport struct {
+	headers   map[string]string
+	transport http.RoundTripper
+}
+
+func (ct *customTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	for key, value := range ct.headers {
+		req.Header.Add(key, value)
+	}
+
+	return ct.transport.RoundTrip(req)
 }
