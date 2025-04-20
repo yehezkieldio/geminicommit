@@ -6,8 +6,8 @@ package config
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/tfkhdyt/geminicommit/cmd/config/key"
-	"github.com/tfkhdyt/geminicommit/cmd/config/model"
+	"github.com/yehezkieldio/geminicommit/cmd/config/key"
+	"github.com/yehezkieldio/geminicommit/cmd/config/model"
 )
 
 // ConfigCmd represents the config command

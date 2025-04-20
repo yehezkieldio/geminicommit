@@ -14,7 +14,7 @@ import (
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
 
-	"github.com/tfkhdyt/geminicommit/internal/service"
+	"github.com/yehezkieldio/geminicommit/internal/service"
 )
 
 type action string

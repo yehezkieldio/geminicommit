@@ -12,8 +12,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/tfkhdyt/geminicommit/cmd/config"
-	"github.com/tfkhdyt/geminicommit/internal/delivery/cli/handler"
+	"github.com/yehezkieldio/geminicommit/cmd/config"
+	"github.com/yehezkieldio/geminicommit/internal/delivery/cli/handler"
 )
 
 var (

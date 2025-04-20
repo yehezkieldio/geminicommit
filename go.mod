@@ -1,4 +1,4 @@
-module github.com/tfkhdyt/geminicommit
+module github.com/yehezkieldio/geminicommit
 
 go 1.22.7
 
@@ -8,6 +8,7 @@ require (
 	github.com/charmbracelet/huh v0.6.0
 	github.com/charmbracelet/huh/spinner v0.0.0-20241108235012-6092b3ba5e33
 	github.com/google/generative-ai-go v0.18.0
+	github.com/sashabaranov/go-openai v1.38.2
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
 	google.golang.org/api v0.205.0
@@ -24,7 +25,6 @@ require (
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/mitchellh/hashstructure/v2 v2.0.2 // indirect
-	github.com/sashabaranov/go-openai v1.38.2 // indirect
 )
 
 require (
